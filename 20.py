@@ -3,7 +3,7 @@ import sys
 
 sys.setrecursionlimit(10000)
 
-input = open(r"C:\Users\Jens\Desktop\AoC\2023\20\input.txt")
+input = open(pathtoinputfile)
 lines = input.readlines()
 data = []
 for line in lines:
