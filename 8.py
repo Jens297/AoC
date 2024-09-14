@@ -12,7 +12,6 @@ for line in lines:
 #creates a list where an entry is a triple (Location, R, L)
 tripledata = []
 for line in data:
-    newline = []
     LOCATION = line[:3]
     LEFT = line[7:10]
     RIGHT = line[12:15] 
