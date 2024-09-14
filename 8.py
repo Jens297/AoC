@@ -18,13 +18,13 @@ for line in data:
     tripledata.append((LOCATION, LEFT, RIGHT))
 
 #creates a dict with key = location, value = [left, right]
-def makeDictofData(tripledata):
+def createDictofData(tripledata):
     dict = {}
     for element in tripledata:
         dict[element[0]] = [element[1], element[2]]
     return dict
 
-mydict = makeDictofData(tripledata)
+mydict = createDictofData(tripledata)
 
 
 #create a list of directions
