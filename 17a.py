@@ -146,6 +146,7 @@ path = AStar(grid)
 cost = 0
 for element in path:
     cost += grid[element]
+# heat loss of entering (0,0) does not count
 cost -= grid[path[0]]
 print(path)
 print(cost)
