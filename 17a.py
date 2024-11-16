@@ -1,4 +1,4 @@
-from node import node
+from node2 import Node
 
 # open the file
 input = open(r"C:\Users\Jens\Desktop\AoC\2023\17\input.txt")
@@ -58,95 +58,119 @@ def getleftneighbour(p):
     else:
         return False
     
-def getNeighbours(point):
+def getNeighbours(node):
     neighbours = []
-    l = getleftneighbour(point)
-    r = getrightneighbour(point)
-    u = getupperneighbour(point)
-    d = getlowerneighbour(point)
-    for coords in l,r,u,d:
-        if coords != False:
-            n = node(coords, grid[coords])
-            n.h = ManhattanDistance(coords,(xMax-1,yMax-1))
-            neighbours.append(n)
+    coords = (node.x,node.y)
+    direction = (node.dx-node.x,node.dy-node.y)
+    l = getleftneighbour(coords)
+    r = getrightneighbour(coords)
+    u = getupperneighbour(coords)
+    d = getlowerneighbour(coords)
+    # looking right
+    if direction == (1,0):
+        if u != False:
+            up = Node(u[0],u[1],0,1,1)
+            neighbours.append(up)
+        if d != False:
+            down = Node(d[0],d[1],0,-1,1)
+            neighbours.append(down)
+        if node.steps < 3 and r != False:
+            right = Node(r[0],r[1],direction[0],direction[1],node.steps+1)
+            neighbours.append(right)
+    # left
+    elif direction == (-1,0):
+        if u != False:
+            up = Node(u[0],u[1],0,1,1)
+            neighbours.append(up)
+        if d != False:
+            down = Node(d[0],d[1],0,-1,1)
+            neighbours.append(down)
+        if node.steps < 3 and l != False:
+            left = Node(l[0],l[1],direction[0],direction[1],node.steps+1)
+            neighbours.append(left)
+    # up
+    elif direction == (0,1):
+        if l != False:
+            left = Node(l[0],l[1],-1,0,1)
+            neighbours.append(left)
+        if r != False:
+            right = Node(r[0],r[1],1,0,1)
+            neighbours.append(right)
+        if node.steps < 3 and u != False:
+            up = Node(u[0],u[1],direction[0],direction[1],node.steps+1)
+            neighbours.append(up)
+    # down
+    elif direction == (0,-1):
+        if l != False:
+            left = Node(l[0],l[1],-1,0,1)
+            neighbours.append(left)
+        if r != False:
+            right = Node(r[0],r[1],1,0,1)
+            neighbours.append(right)
+        if node.steps < 3 and d != False:
+            down = Node(d[0],d[1],direction[0],direction[1],node.steps+1)
+            neighbours.append(down)
+
     return neighbours
 
+def get_current_node(unvisited):
+    return min(unvisited, key=lambda node: node.cost)
 
-def ManhattanDistance(s,g):
-    return abs(s[0]-g[0]) + abs(s[1]-g[1])
+infinity = float('inf')
 
-def getNodewithlowestf(openlist):
-    init = openlist[0]
-    if len(openlist) == 1:
-        return init
-    for node in openlist:
-        if node.f < init.f:
-            init = node
-    return init
+def generate_states(x_range, y_range):
+    directions = [(0,1),(0,-1),(1,0),(-1,0)]
+    step_range = range(4) 
 
-def reconstruct_path(parent, node):
-    path = []
-    while node in parent:
-        path.append(node)
-        node = parent[node]
-    path.append((0, 0))  # Add the start node 
-    path.reverse()
-    return path
+    states = []
+    for x in range(x_range):
+        for y in range(y_range):
+            for direction in directions:
+                for step in step_range:
+                    state = Node(x,y,direction[0],direction[1], step)
+                    states.append(state)
+    return states
 
-def AStar(grid):
-    start = node((0,0),0)
-    openlist = [start]
-    goal = node((xMax-1,yMax-1),grid[(xMax-1,yMax-1)])
-    start.f = ManhattanDistance(start.coords, goal.coords)
-    start.h = start.f
-    start.g = 0
-    parent = {}
-    closedlist = set()
-    max_steps_in_one_direction = 3
+unvisited = generate_states(xMax,yMax)
 
-    while openlist:
-        current_node = getNodewithlowestf(openlist)
-        if current_node.coords == goal.coords:
-            print("goal reached")
-            path = reconstruct_path(parent,current_node.coords)
-            return path
-            
-        openlist.remove(current_node)
-        closedlist.add(current_node)
-        neighbours = getNeighbours(current_node.coords)
-        for neighbour in neighbours:
-            if neighbour in closedlist:
-                continue
-            direction = (neighbour.coords[0] - current_node.coords[0], neighbour.coords[1] - current_node.coords[1])
-            if current_node.last_direction == direction:
-                steps_in_direction = current_node.steps_in_direction + 1
-            else:
-                steps_in_direction = 1
+# sets the cost to reach a state in the list and returns the list with updated cost
+def setcost(list,state,cost):
+    for element in list:
+        if element == state:
+            element.cost = cost
+    return list
 
-            if steps_in_direction > max_steps_in_one_direction:
-                continue 
-            
-            # compute g value
-            tentative_g = current_node.g + neighbour.cost
-            # check if the neighbour has no g value (not reached yet) or if the
-            # new path is better than the current
-            if neighbour.g == None or tentative_g < neighbour.g:
-                # if new path is better, save the parent
-                parent[neighbour.coords] = current_node.coords
-                neighbour.g = tentative_g
-                neighbour.f = neighbour.h+tentative_g
-                neighbour.last_direction = direction
-                neighbour.steps_in_direction = steps_in_direction
-                # if the neighbour is not in the openlist, add it 
-                if neighbour not in openlist:
-                    openlist.append(neighbour)
+# returns the cost to reach a state in a list of states
+def getcost(list,state):
+    for element in list:
+        if element == state:
+            return element.cost
+
+def dijkstra(heatloss, unvisited):
+    start1 = Node(0,0,1,0,0)
+    goal = (xMax-1,yMax-1)
+
+    #set cost to 0 for start
+    for state in unvisited:
+        if state == start1:
+            state.cost = 0
+
+    while unvisited:
+        current_node = get_current_node(unvisited)
+        current_node_coords = (current_node.x,current_node.y)
+        if current_node_coords == goal:
+            return "goal reached",current_node.cost
+        else:
+            neighbours = getNeighbours(current_node)
+            for neighbour in neighbours:
+                if neighbour in unvisited:
+                    neighbour.coords = (neighbour.x, neighbour.y)
+                    tentative_distance = current_node.cost+heatloss[neighbour.coords]
+                    currentcost = getcost(unvisited,neighbour)
+                    if tentative_distance < currentcost:
+                        unvisited = setcost(unvisited,neighbour,tentative_distance)
+            unvisited.remove(current_node)
 
 
-path = AStar(grid)
-cost = 0
-for element in path:
-    cost += grid[element]
-# heat loss of entering (0,0) does not count
-cost -= grid[path[0]]
-print(path)
-print(cost)
+d = dijkstra(grid,unvisited)
+print(d)
