@@ -2,7 +2,13 @@ class Node:
     def __init__(self,name,destinations,path_to_reach):
         self.name = name
         self.path_to_reach = []
-        self.destinations = destinations
+        new_Destinations = []
+        for destination in destinations:    
+            new_Destinations.append([destination[0],[destination[1]]])
+        self.destinations = new_Destinations
+
+
+
 
     def __repr__(self):
         if any(self is item for item in self.path_to_reach):
